@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Évaluez votre risque de cancer cutané</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #f5f5f3;
+      color: #1a1a18;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+    }
+    #app {
+      max-width: 660px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 2rem;
+      border: 0.5px solid rgba(0,0,0,0.1);
+    }
+    h1 { font-size: 20px; font-weight: 500; color: #1a1a18; margin-bottom: 0.25rem; }
+    .subtitle { font-size: 14px; color: #6b6b68; margin-bottom: 1.5rem; line-height: 1.6; }
+    .progress-bar { height: 4px; background: rgba(0,0,0,0.1); border-radius: 2px; margin-bottom: 0.5rem; }
+    .progress-fill { height: 100%; border-radius: 2px; background: #378ADD; transition: width 0.4s ease; }
+    .step-label { font-size: 12px; color: #9b9b97; margin-bottom: 1.25rem; }
+    .section-title {
+      font-size: 15px; font-weight: 500; color: #1a1a18;
+      margin-bottom: 1rem; padding-bottom: 0.5rem;
+      border-bottom: 0.5px solid rgba(0,0,0,0.1);
+    }
+    .question { margin-bottom: 1.25rem; }
+    .question-label { font-size: 14px; color: #1a1a18; margin-bottom: 0.5rem; line-height: 1.5; }
+    .options { display: flex; flex-wrap: wrap; gap: 8px; }
+    .opt-btn {
+      font-size: 13px; padding: 6px 14px;
+      border: 0.5px solid rgba(0,0,0,0.2);
+      border-radius: 8px;
+      background: #ffffff; color: #1a1a18;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .opt-btn:hover { background: #f5f5f3; }
+    .opt-btn.selected { background: #E6F1FB; border-color: #378ADD; color: #0C447C; }
+    .phototype-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px; margin-bottom: 1rem;
+    }
+    .pt-card {
+      padding: 12px; border: 0.5px solid rgba(0,0,0,0.12);
+      border-radius: 12px; cursor: pointer; transition: all 0.15s;
+    }
+    .pt-card:hover { border-color: rgba(0,0,0,0.25); background: #f5f5f3; }
+    .pt-card.selected { border-color: #378ADD; background: #E6F1FB; }
+    .pt-num { font-size: 16px; font-weight: 500; margin-bottom: 4px; color: #1a1a18; }
+    .pt-desc { font-size: 12px; color: #6b6b68; line-height: 1.4; }
+    .pt-card.selected .pt-desc { color: #185FA5; }
+    .pt-swatch {
+      width: 28px; height: 28px; border-radius: 50%;
+      margin-bottom: 8px; border: 0.5px solid rgba(0,0,0,0.15);
+    }
+    .nav { display: flex; gap: 10px; margin-top: 1.5rem; flex-wrap: wrap; }
+    .btn-next {
+      padding: 10px 24px; background: #378ADD; color: white;
+      border: none; border-radius: 8px; font-size: 14px;
+      font-weight: 500; cursor: pointer; transition: background 0.15s;
+    }
+    .btn-next:hover { background: #185FA5; }
+    .btn-next:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-back {
+      padding: 10px 20px; background: transparent; color: #6b6b68;
+      border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px;
+      font-size: 14px; cursor: pointer; transition: background 0.15s;
+    }
+    .btn-back:hover { background: #f5f5f3; }
+    .result-card {
+      border: 0.5px solid rgba(0,0,0,0.1);
+      border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem;
+    }
+    .risk-badge {
+      display: inline-block; font-size: 13px; font-weight: 500;
+      padding: 4px 12px; border-radius: 8px; margin-bottom: 0.75rem;
+    }
+    .risk-tres-eleve { background: #FCEBEB; color: #791F1F; }
+    .risk-eleve { background: #FAEEDA; color: #633806; }
+    .risk-modere { background: #FAEEDA; color: #854F0B; }
+    .risk-faible { background: #EAF3DE; color: #3B6D11; }
+    .risk-tres-faible { background: #EAF3DE; color: #27500A; }
+    .result-title { font-size: 16px; font-weight: 500; margin-bottom: 0.5rem; color: #1a1a18; }
+    .result-body { font-size: 14px; color: #6b6b68; line-height: 1.6; }
+    .factors-list { margin-top: 0.75rem; padding-left: 1.2rem; }
+    .factors-list li { font-size: 13px; color: #6b6b68; margin-bottom: 4px; line-height: 1.5; }
+    .cta-box {
+      background: #f5f5f3; border-radius: 12px;
+      padding: 1rem 1.25rem; margin-top: 1rem;
+    }
+    .cta-title { font-size: 14px; font-weight: 500; color: #1a1a18; margin-bottom: 0.4rem; }
+    .cta-text { font-size: 13px; color: #6b6b68; line-height: 1.6; }
+    .warning {
+      font-size: 12px; color: #9b9b97; margin-top: 1.25rem;
+      font-style: italic; line-height: 1.6;
+      padding-top: 1rem; border-top: 0.5px solid rgba(0,0,0,0.08);
+    }
+
+    @media (max-width: 480px) {
+      #app { padding: 1.25rem; }
+      .phototype-grid { grid-template-columns: 1fr 1fr; }
+      h1 { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <h1>Évaluez votre risque de cancer cutané</h1>
+  <p class="subtitle">Ce questionnaire évalue votre exposition aux facteurs de risque liés aux UV solaires. Il ne remplace pas un avis médical.</p>
+  <div class="progress-bar"><div class="progress-fill" id="progress" style="width:33%"></div></div>
+  <div id="step-label" class="step-label">Étape 1 sur 3</div>
+  <div id="step-content"></div>
+</div>
+
+<script>
+const state = { phototype: null, q: {} };
+
+const phototypes = [
+  { num: 1, label: "Type I", swatch: "#FDE8D8", desc: "Peau très claire, taches de rousseur, cheveux roux/blond très clair. Brûle toujours, ne bronze jamais." },
+  { num: 2, label: "Type II", swatch: "#F5CEAE", desc: "Peau claire, cheveux blonds/châtain clair. Brûle facilement, bronze peu." },
+  { num: 3, label: "Type III", swatch: "#E8B88A", desc: "Peau intermédiaire, cheveux châtain. Brûle parfois, bronze progressivement." },
+  { num: 4, label: "Type IV", swatch: "#C9935A", desc: "Peau mate, cheveux bruns. Brûle rarement, bronze facilement." },
+  { num: 5, label: "Type V", swatch: "#8B5E3C", desc: "Peau brune foncée. Brûle très rarement, bronze toujours." },
+  { num: 6, label: "Type VI", swatch: "#4A2F1E", desc: "Peau noire. Ne brûle presque jamais." },
+];
+
+const questions = [
+  { id: "sunburns", label: "Avez-vous souvent eu de sérieux coups de soleil avant l'âge de 18 ans ?", opts: ["Oui","Non","Ne sais pas"] },
+  { id: "vacances", label: "Êtes-vous régulièrement exposé(e) à un rayonnement solaire intense pendant vos vacances ?", opts: ["Oui","Non"] },
+  { id: "pro_loisirs", label: "Êtes-vous exposé(e) au soleil de façon prolongée dans le cadre de votre activité professionnelle ou de vos loisirs (sport, jardinage, travaux extérieurs…) ?", opts: ["Oui","Non"] },
+  { id: "solarium", label: "Fréquentez-vous les cabines de bronzage (solarium) ?", opts: ["Oui","Non"] },
+  { id: "melanome_famille", label: "Des membres de votre famille proche (parents, fratrie) ont-ils été atteints de mélanome ?", opts: ["Oui","Non","Ne sais pas"] },
+  { id: "antecedent_perso", label: "Avez-vous vous-même des antécédents personnels de cancer de la peau ?", opts: ["Oui","Non","Ne sais pas"] },
+  { id: "naevi", label: "Avez-vous de nombreux grains de beauté (plus de 50) ou des grains de beauté à l'aspect irrégulier, multicolore ou de grande taille ?", opts: ["Oui","Non","Ne sais pas"] },
+  { id: "immuno", label: "Êtes-vous sous traitement immunosuppresseur ou avez-vous un système immunitaire affaibli ?", opts: ["Oui","Non","Ne sais pas"] },
+];
+
+function renderStep1() {
+  let html = `<div class="section-title">Partie 1 — Déterminez votre phototype</div>
+  <p class="question-label" style="margin-bottom:1rem;">Choisissez le profil qui correspond le mieux à votre peau naturelle (sans bronzage) :</p>
+  <div class="phototype-grid">`;
+  phototypes.forEach(pt => {
+    const sel = state.phototype === pt.num ? "selected" : "";
+    html += `<div class="pt-card ${sel}" onclick="selectPhototype(${pt.num})">
+      <div class="pt-swatch" style="background:${pt.swatch}"></div>
+      <div class="pt-num">${pt.label}</div>
+      <div class="pt-desc">${pt.desc}</div>
+    </div>`;
+  });
+  html += `</div>
+  <div class="nav"><button class="btn-next" id="btn1" onclick="goStep2()" ${state.phototype ? "" : "disabled"}>Continuer →</button></div>`;
+  document.getElementById("step-content").innerHTML = html;
+  document.getElementById("progress").style.width = "33%";
+  document.getElementById("step-label").textContent = "Étape 1 sur 3";
+}
+
+function selectPhototype(n) {
+  state.phototype = n;
+  document.querySelectorAll(".pt-card").forEach((c, i) => {
+    c.classList.toggle("selected", phototypes[i].num === n);
+  });
+  document.getElementById("btn1").disabled = false;
+}
+
+function renderStep2() {
+  let html = `<div class="section-title">Partie 2 — Vos facteurs de risque comportementaux et médicaux</div>`;
+  questions.forEach(q => {
+    const cur = state.q[q.id];
+    html += `<div class="question">
+      <div class="question-label">${q.label}</div>
+      <div class="options">`;
+    q.opts.forEach(o => {
+      const sel = cur === o ? "selected" : "";
+      html += `<button class="opt-btn ${sel}" onclick="selectQ('${q.id}','${o}',this)">${o}</button>`;
+    });
+    html += `</div></div>`;
+  });
+  html += `<div class="nav">
+    <button class="btn-back" onclick="goStep1()">← Retour</button>
+    <button class="btn-next" id="btn2" onclick="goStep3()" ${allAnswered() ? "" : "disabled"}>Voir mon résultat →</button>
+  </div>`;
+  document.getElementById("step-content").innerHTML = html;
+  document.getElementById("progress").style.width = "66%";
+  document.getElementById("step-label").textContent = "Étape 2 sur 3";
+}
+
+function selectQ(id, val, btn) {
+  state.q[id] = val;
+  btn.closest(".options").querySelectorAll(".opt-btn").forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+  if (allAnswered()) document.getElementById("btn2").disabled = false;
+}
+
+function allAnswered() {
+  return questions.every(q => state.q[q.id]);
+}
+
+function computeRisk() {
+  const pt = state.phototype;
+  const q = state.q;
+  let score = 0;
+  if (pt === 1) score += 4;
+  else if (pt === 2) score += 3;
+  else if (pt === 3) score += 2;
+  else if (pt === 4) score += 1;
+  if (q.sunburns === "Oui") score += 2;
+  if (q.vacances === "Oui") score += 1;
+  if (q.pro_loisirs === "Oui") score += 1;
+  if (q.solarium === "Oui") score += 2;
+  if (q.melanome_famille === "Oui") score += 2;
+  if (q.antecedent_perso === "Oui") score += 3;
+  if (q.naevi === "Oui") score += 2;
+  if (q.immuno === "Oui") score += 2;
+  return score;
+}
+
+function renderStep3() {
+  const pt = state.phototype;
+  const score = computeRisk();
+  const ptInfo = phototypes.find(p => p.num === pt);
+  let ptRisk, ptRiskClass;
+  if (pt <= 2) { ptRisk = "très élevé"; ptRiskClass = "risk-tres-eleve"; }
+  else if (pt === 3) { ptRisk = "élevé"; ptRiskClass = "risk-eleve"; }
+  else if (pt === 4) { ptRisk = "modéré"; ptRiskClass = "risk-modere"; }
+  else if (pt === 5) { ptRisk = "faible"; ptRiskClass = "risk-faible"; }
+  else { ptRisk = "très faible"; ptRiskClass = "risk-tres-faible"; }
+
+  let globalRisk, globalClass, ctaText;
+  if (score >= 10) {
+    globalRisk = "Risque global très élevé"; globalClass = "risk-tres-eleve";
+    ctaText = "Une consultation dermatologique est fortement recommandée. Signalez vos antécédents et vos grains de beauté à votre médecin.";
+  } else if (score >= 7) {
+    globalRisk = "Risque global élevé"; globalClass = "risk-eleve";
+    ctaText = "Un bilan dermatologique annuel est conseillé. Appliquez rigoureusement les mesures de prévention.";
+  } else if (score >= 4) {
+    globalRisk = "Risque global modéré"; globalClass = "risk-modere";
+    ctaText = "Adoptez de bonnes pratiques de protection solaire. En cas de doute sur un grain de beauté, consultez un dermatologue.";
+  } else {
+    globalRisk = "Risque global faible"; globalClass = "risk-faible";
+    ctaText = "Votre risque est actuellement limité. Maintenez de bonnes habitudes de protection solaire et évitez les coups de soleil.";
+  }
+
+  const posFactors = [];
+  if (state.q.sunburns === "Oui") posFactors.push("Coups de soleil sévères avant 18 ans");
+  if (state.q.vacances === "Oui") posFactors.push("Exposition solaire intense en vacances");
+  if (state.q.pro_loisirs === "Oui") posFactors.push("Exposition professionnelle ou lors de loisirs");
+  if (state.q.solarium === "Oui") posFactors.push("Usage de cabines de bronzage");
+  if (state.q.melanome_famille === "Oui") posFactors.push("Antécédent familial de mélanome");
+  if (state.q.antecedent_perso === "Oui") posFactors.push("Antécédent personnel de cancer cutané");
+  if (state.q.naevi === "Oui") posFactors.push("Nombreux grains de beauté ou nævus atypiques");
+  if (state.q.immuno === "Oui") posFactors.push("Immunodépression");
+
+  let html = `<div class="section-title">Résultats de votre évaluation</div>
+  <div class="result-card">
+    <span class="risk-badge ${ptRiskClass}">Phototype ${pt}</span>
+    <div class="result-title">Peau de type ${pt} — risque lié au phototype : <strong>${ptRisk}</strong></div>
+    <div class="result-body">${ptInfo.desc}</div>
+  </div>
+  <div class="result-card">
+    <span class="risk-badge ${globalClass}">${globalRisk}</span>
+    <div class="result-title">Évaluation globale (phototype + facteurs de risque)</div>`;
+
+  if (posFactors.length > 0) {
+    html += `<div class="result-body">Vous présentez ${posFactors.length} facteur(s) de risque identifié(s) :</div>
+    <ul class="factors-list">`;
+    posFactors.forEach(f => { html += `<li>${f}</li>`; });
+    html += `</ul>`;
+  } else {
+    html += `<div class="result-body">Aucun facteur de risque comportemental ou médical identifié.</div>`;
+  }
+
+  html += `</div>
+  <div class="cta-box">
+    <div class="cta-title">Que faire ?</div>
+    <div class="cta-text">${ctaText} Quelle que soit votre situation, évitez toute exposition prolongée sans protection (indice SPF adapté à votre phototype), surtout entre 12h et 16h.</div>
+  </div>
+  <div class="nav">
+    <button class="btn-back" onclick="reset()">Recommencer</button>
+  </div>
+  <p class="warning">Ce questionnaire est un outil d'information préventive. Il ne constitue pas un diagnostic médical. En cas de doute, consultez un professionnel de santé.</p>`;
+
+  document.getElementById("step-content").innerHTML = html;
+  document.getElementById("progress").style.width = "100%";
+  document.getElementById("step-label").textContent = "Étape 3 sur 3 — Résultats";
+}
+
+function goStep1() { renderStep1(); }
+function goStep2() { renderStep2(); }
+function goStep3() { renderStep3(); }
+function reset() { state.phototype = null; state.q = {}; renderStep1(); }
+
+renderStep1();
+</script>
+</body>
+</html>
